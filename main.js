@@ -3,29 +3,48 @@ fakeData()
 
 //上面是假的后台
 //Model层，对数据的所有操作放在这里
-let model = {
+function Model(options){
+  this.data = options.data
+  this.resource = options.resource
+}
+Model.prototype.fetch = function(id){
+  //ES6中的模版表达式，在反引号中，使用${}可以插入变量
+  return axios.get(`/${this.resource}s/${id}`).then((response)=>{
+    this.data = response.data
+    return response
+  })
+}
+Model.prototype.update = function(id, data){
+  return axios.put(`/${this.resource}s/${id}`, data).then((response)=>{
+    this.data = response.data
+    return response
+  })
+}
+
+//View层，对界面的所有操作放在这里
+function View(options){
+  this.el = options.el
+  this.template = options.template
+}
+
+View.prototype.render = function(data){
+  let html = this.template.replace('__name__', data.name)
+    .replace('__number__', data.number)
+  $(this.el).html(html)
+}
+
+//上面是MVC（C太复杂没有拆分出来）类，下面是对象。
+
+let bookModel = new Model({
   data: {
     name: 'aaa',
     number: 222,
     id: ''
   },
-  fetch(id){
-    //ES6中的模版表达式，在反引号中，使用${}可以插入变量
-    return axios.get(`/books/${id}`).then((response)=>{
-      this.data = response.data
-      return response
-    })
-  },
-  update(id, data){
-    return axios.put(`/books/${id}`, data).then((response)=>{
-      this.data = response.data
-      return response
-    })
-  }
-}
+  resource: "book"
+})
 
-//View层，对界面的所有操作放在这里
-let view = {
+let bookView = new View({
   el: '#app',
   template: `
     <div>
@@ -36,18 +55,12 @@ let view = {
           <button id="minusOne">减1</button>
           <button id="reset">归零</button>
       </div>
-    </div>
-  `,
-  render(data){
-    let html = this.template.replace('__name__', data.name)
-      .replace('__number__', data.number)
-    $(this.el).html(html)
-  }
-}
+    </div>`
+})
 
 //Controller层，主要的业务逻辑操作放在这里
 var controller = {
-  //这2个属性可以省略，JavaScript会默认加上。
+  //这2个属性可以省略，JavaScript会默认加上？
   view: '',
   model: '',
   //初始化数据，绑定事件
@@ -92,7 +105,7 @@ var controller = {
   }
 }
 //初始化，传入view和model
-controller.init({view: view, model: model})
+controller.init({view: bookView, model: bookModel})
  
 
 function fakeData(){
