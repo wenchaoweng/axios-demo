@@ -22,16 +22,6 @@ Model.prototype.update = function(id, data){
 }
 
 //View层，对界面的所有操作放在这里
-function View(options){
-  this.el = options.el
-  this.template = options.template
-}
-
-View.prototype.render = function(data){
-  let html = this.template.replace('__name__', data.name)
-    .replace('__number__', data.number)
-  $(this.el).html(html)
-}
 
 //上面是MVC（C太复杂没有拆分出来）类，下面是对象。
 
@@ -44,18 +34,49 @@ let bookModel = new Model({
   resource: "book"
 })
 
-let bookView = new View({
+let bookView = new Vue({
   el: '#app',
+  data: {
+    book: {
+      name: "未命名",
+      number: 2,
+      id: ''
+    }
+  },
   template: `
+  <div>
     <div>
-      书名：《__name__》
-      数量：<span id="number">__number__</span>
-      <div>
-          <button id="addOne">加1</button>
-          <button id="minusOne">减1</button>
-          <button id="reset">归零</button>
+        书名：《{{book.name}}》
+        数量：<span id="number">{{book.number}}</span>
+        <div>
+            <button v-on:click="addOne">加1</button>
+            <button v-on:click="minusOne">减1</button>
+            <button v-on:click="reset">归零</button>
+        </div>
       </div>
-    </div>`
+  </div>`,
+  created(){
+    bookModel.fetch(1).then(()=>{
+      this.book = bookModel.data
+    })
+  },
+  methods:{
+    addOne(){
+      bookModel.update(1, {number: this.book.number + 1}).then(()=>{
+        this.book = bookModel.data
+      })
+    },
+    minusOne(){
+      bookModel.update(1, {number: this.book.number - 1}).then(()=>{
+        this.book = bookModel.data
+      })
+    },
+    reset(){
+      bookModel.update(1, {number: 0}).then(()=>{
+        this.book = bookModel.data
+      })
+    }
+  }
 })
 
 //Controller层，主要的业务逻辑操作放在这里
@@ -69,33 +90,8 @@ var controller = {
     this.view = options.view
     this.model = options.model
 
-    this.view.render(this.model.data)
-
-    this.bindEvents()
-
-    this.model.fetch(1).then(()=>{
-      this.view.render(this.model.data)
-    })
   },
-  addOne(){
-    var oldNumber = $('#number').text()
-    var newNumber = oldNumber -0 +1
-    this.model.update(1, {number: newNumber}).then(()=>{
-      this.view.render(this.model.data)
-    })
-  },
-  minusOne(){
-    var oldNumber = $('#number').text()
-    var newNumber = oldNumber -0 -1
-    this.model.update(1, {number: newNumber}).then(()=>{
-      this.view.render(this.model.data)
-    })
-  },
-  reset(){
-    this.model.update(1, {number: 0}).then(()=>{
-      this.view.render(this.model.data)
-    })
-  },
+  
   bindEvents(){
     //this === controller, bind 保证addOne里面的this都是指向controller的。
     //采用事件委托方式绑定事件，避免app里的内容被重新更新后，事件响应不起作用。
