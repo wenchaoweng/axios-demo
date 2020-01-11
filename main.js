@@ -33,7 +33,7 @@ let bookModel = new Model({
   },
   resource: "book"
 })
-
+//Vue实现自动化的MVC，可以双向数据绑定
 let bookView = new Vue({
   el: '#app',
   data: {
@@ -41,13 +41,18 @@ let bookView = new Vue({
       name: "未命名",
       number: 2,
       id: ''
-    }
+    },
+    n:1
   },
   template: `
   <div>
     <div>
         书名：《{{book.name}}》
         数量：<span id="number">{{book.number}}</span>
+        <div>
+          <input v-model='n' />
+          N的值是{{n}}
+        </div>
         <div>
             <button v-on:click="addOne">加1</button>
             <button v-on:click="minusOne">减1</button>
@@ -62,12 +67,12 @@ let bookView = new Vue({
   },
   methods:{
     addOne(){
-      bookModel.update(1, {number: this.book.number + 1}).then(()=>{
+      bookModel.update(1, {number: this.book.number + (this.n-0)}).then(()=>{
         this.book = bookModel.data
       })
     },
     minusOne(){
-      bookModel.update(1, {number: this.book.number - 1}).then(()=>{
+      bookModel.update(1, {number: this.book.number - (this.n-0)}).then(()=>{
         this.book = bookModel.data
       })
     },
